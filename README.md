@@ -1,4 +1,4 @@
-# Course Recommendation for Bar-Ilan Engineering using Real and Synthetic Transcripts
+# Effective-match — Course Recommendation for Bar-Ilan Engineering
 
 Grade-aware elective recommendation for students of the Bar-Ilan University Faculty of Engineering.
 Given a student's partial transcript (courses, semesters, grades), track, and interests, the system
