@@ -33,6 +33,10 @@ transcript ─► preprocessing ─► prerequisite / eligibility filter ─► 
 
 - **Real transcripts** — collected from consenting students, anonymized. **Never committed to this repository**
   (see [`data/README.md`](data/README.md)).
+- **Academic balance parser** ([`src/data/parse_maazan.py`](src/data/parse_maazan.py)) — reads a Bar-Ilan
+  "מאזן לימודים" PDF and extracts every course (year, code, type, name, credits, grade), each requirement
+  group with min / earned / remaining credits, and the courses registered this year. Also writes the
+  transcript in the project schema. Name and ID number are never extracted; output goes to the git-ignored `data/real/`.
 - **Course catalog** — courses, credits and prerequisites from the Bar-Ilan Engineering yearbook (שנתון).
 - **Synthetic transcripts** — latent-skill generator calibrated to real grade statistics
   ([`src/synthetic/generator.py`](src/synthetic/generator.py)). Used for **training only**; the test set is 100% real.
@@ -73,6 +77,7 @@ src/
 
 ```bash
 pip install -r requirements.txt
+python src/data/parse_maazan.py path/to/maazan.pdf --student-id S001   # -> data/real/S001/ (private)
 python src/synthetic/generator.py --n-students 2000 --out data/synthetic/transcripts.csv
 python src/data/expand_prefixes.py --data data/synthetic/transcripts.csv --out data/synthetic/samples.csv
 python src/models/baselines.py --data data/synthetic/transcripts.csv

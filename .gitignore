@@ -26,3 +26,6 @@ wandb/
 Thumbs.db
 .vscode/
 .idea/
+
+# Student documents (מאזן לימודים etc.) contain name + ID
+*.pdf
