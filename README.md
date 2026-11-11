@@ -95,6 +95,8 @@ python src/evaluation/rolling_eval.py --data data/synthetic/transcripts.csv --ma
 
 ## Academic balance app (no command line)
 
-Double-click **`Maazan App.bat`** (or drag a מאזן לימודים PDF onto it) → the app opens, shows remaining
-credits per requirement, courses registered this year, all courses and grades, and **Save results**
+Double-click **`Maazan App.bat`** (or drag a מאזן לימודים PDF onto it) → the app opens with a course list
+(**name · grade · credits · lecturer**), remaining credits per requirement and courses registered this year.
+Lecturers are not in the PDF: double-click a course to type its lecturer — saved in `data/catalog/lecturers.csv`
+and reused for every PDF; and **Save results**
 writes CSV files that open in Excel. Runs locally; nothing is uploaded.
