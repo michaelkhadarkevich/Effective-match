@@ -151,7 +151,10 @@ function maazanParse(pages) {
 
 // One row per course: lecture/exercise/lab merged, credits summed, sorted by year.
 function maazanCourseList(courses) {
-  const keep = courses.filter((c) => c.status !== "requirement" && c.type !== "ש.מחלקה");
+  // not real courses for recommendation: department hours, אשנב colloquiums, לומדה modules, the final project
+  const skip = (c) => c.type === "ש.מחלקה" || c.type === "פרויקט" || c.type === "הדרכה" ||
+    /^אשנב/.test(c.name) || /לומדה/.test(c.name) || c.name.trim() === "פרויקט";
+  const keep = courses.filter((c) => c.status !== "requirement" && !skip(c));
   const by = new Map();
   keep.forEach((c, i) => { if (!by.has(c.course_id)) by.set(c.course_id, { rows: [], order: i }); by.get(c.course_id).rows.push(c); });
   const list = [...by.entries()].map(([id, { rows, order }]) => {

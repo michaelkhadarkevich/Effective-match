@@ -42,7 +42,11 @@ def save_lecturers(lect: dict[str, str]) -> None:
 
 def course_list(courses: pd.DataFrame, lecturers: dict[str, str]) -> pd.DataFrame:
     """One row per course: lecture + exercise + lab rows are merged (credits summed)."""
-    c = courses[(courses.status != "requirement") & ~courses.type.isin(SKIP_TYPES)].copy()
+    # not real courses for recommendation: department hours, אשנב colloquiums, לומדה modules, the final project
+    skip = (courses.type.isin(SKIP_TYPES | {"פרויקט", "הדרכה"})
+            | courses.name.str.startswith("אשנב") | courses.name.str.contains("לומדה")
+            | courses.name.str.strip().eq("פרויקט"))
+    c = courses[(courses.status != "requirement") & ~skip].copy()
     c["is_lecture"] = c.type.eq("הרצאה")
     rows = []
     for cid, g in c.groupby("course_id", sort=False):
