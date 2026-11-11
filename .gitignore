@@ -1,0 +1,28 @@
+# --- PRIVACY: real student data must never be committed ---
+data/real/
+*.xlsx
+*transcript*real*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+*.egg-info/
+
+# Models / outputs
+checkpoints/
+*.pt
+*.ckpt
+runs/
+wandb/
+
+# Secrets
+.env
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

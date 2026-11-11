@@ -1,0 +1,19 @@
+course_id,name,semester,elective,prereqs,math,programming,physics,circuits,signals,difficulty
+C01,Calculus 1 (placeholder),1,0,,0.9,0.0,0.1,0.0,0.0,0.6
+C02,Linear Algebra (placeholder),1,0,,0.9,0.1,0.0,0.0,0.0,0.5
+C03,Intro to Programming (placeholder),1,0,,0.1,0.9,0.0,0.0,0.0,0.3
+C04,Physics 1 (placeholder),1,0,,0.4,0.0,0.6,0.0,0.0,0.6
+C05,Calculus 2 (placeholder),2,0,C01,0.9,0.0,0.1,0.0,0.0,0.7
+C06,Data Structures (placeholder),2,0,C03,0.3,0.7,0.0,0.0,0.0,0.5
+C07,Physics 2 (placeholder),2,0,C04;C01,0.3,0.0,0.6,0.1,0.0,0.7
+C08,Probability (placeholder),3,0,C05,0.8,0.1,0.0,0.0,0.1,0.6
+C09,Electric Circuits (placeholder),3,0,C07,0.3,0.0,0.2,0.5,0.0,0.6
+C10,Signals and Systems (placeholder),4,0,C05;C09,0.5,0.0,0.0,0.1,0.4,0.7
+C11,Algorithms (placeholder),4,0,C06,0.5,0.5,0.0,0.0,0.0,0.6
+C12,Machine Learning (placeholder),5,1,C08;C02,0.5,0.4,0.0,0.0,0.1,0.6
+C13,Digital Signal Processing (placeholder),5,1,C10,0.4,0.1,0.0,0.0,0.5,0.7
+C14,Computer Vision (placeholder),6,1,C12,0.4,0.4,0.0,0.0,0.2,0.6
+C15,Analog Electronics (placeholder),5,1,C09,0.2,0.0,0.2,0.6,0.0,0.7
+C16,Communication Systems (placeholder),6,1,C10;C08,0.4,0.0,0.0,0.1,0.5,0.7
+C17,Operating Systems (placeholder),5,1,C06,0.1,0.8,0.0,0.1,0.0,0.6
+C18,Deep Learning (placeholder),6,1,C12,0.4,0.5,0.0,0.0,0.1,0.6
