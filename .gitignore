@@ -29,3 +29,4 @@ Thumbs.db
 
 # Student documents (מאזן לימודים etc.) contain name + ID
 *.pdf
+!presentations/*.pdf
