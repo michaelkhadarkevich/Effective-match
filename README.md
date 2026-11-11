@@ -92,3 +92,9 @@ python src/evaluation/rolling_eval.py --data data/synthetic/transcripts.csv --ma
 | 8 | Midterm: baselines, first results, error analysis |
 | 13 | Final presentation |
 | 14–15 | Repository polish and submission |
+
+## Academic balance app (no command line)
+
+Double-click **`Maazan App.bat`** (or drag a מאזן לימודים PDF onto it) → the app opens, shows remaining
+credits per requirement, courses registered this year, all courses and grades, and **Save results**
+writes CSV files that open in Excel. Runs locally; nothing is uploaded.
