@@ -1,0 +1,513 @@
+<title>ElectiveMatch Transcripts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap">
+<style>
+/* Layout: one narrow column, three numbered steps (they are a real sequence), owner panel below */
+:root {
+  --paper: #f6f7f4; --card: #ffffff; --ink: #18221f; --muted: #5d6a65; --line: #d9dfdb;
+  --accent: #0f6b5c; --accent-ink: #ffffff; --accent-soft: #e2f0ec; --warn: #9a5b00; --warn-soft: #fbf0dc;
+  --bad: #a3322a; --good: #23784a;
+  --display: "Frank Ruhl Libre", "David", Georgia, serif;
+  --body: "Assistant", "Segoe UI", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #111816; --card: #18211e; --ink: #e6ece9; --muted: #9aa8a2; --line: #2c3934;
+  --accent: #4fc0a8; --accent-ink: #0b1513; --accent-soft: #1d3330; --warn: #e9b35a; --warn-soft: #33281a;
+  --bad: #f0857b; --good: #6fd29b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #111816; --card: #18211e; --ink: #e6ece9; --muted: #9aa8a2; --line: #2c3934;
+  --accent: #4fc0a8; --accent-ink: #0b1513; --accent-soft: #1d3330; --warn: #e9b35a; --warn-soft: #33281a;
+  --bad: #f0857b; --good: #6fd29b; color-scheme: dark }
+html { direction: rtl; }
+body { background: var(--paper); color: var(--ink); font: 17px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: clamp(30px, 6vw, 42px); }
+h2 { font-size: 23px; display: flex; gap: 10px; align-items: baseline; }
+.step { font: 600 14px var(--body); color: var(--accent); letter-spacing: .04em; }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 62ch; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.privacy { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.privacy div { border-radius: 8px; padding: 12px 14px; font-size: 15px; }
+.privacy .yes { background: var(--accent-soft); }
+.privacy .no { background: var(--warn-soft); }
+.privacy b { display: block; margin-bottom: 4px; }
+.drop { border: 2px dashed var(--line); border-radius: 10px; padding: 28px 16px; text-align: center; cursor: pointer; display: grid; gap: 6px; justify-items: center; }
+.drop:hover, .drop.over, .drop:focus-within { border-color: var(--accent); background: var(--accent-soft); }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.drop strong { font-size: 18px; }
+.muted { color: var(--muted); font-size: 15px; }
+.err { color: var(--bad); font-weight: 600; }
+.ok { color: var(--good); font-weight: 600; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 15px; }
+.stats b { font-variant-numeric: tabular-nums; }
+.tbl { overflow-x: auto; max-height: 420px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td.name { white-space: normal; min-width: 180px; }
+th { position: sticky; top: 0; background: var(--card); font-weight: 700; }
+td.num { font-variant-numeric: tabular-nums; }
+.chip { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 13px; background: var(--accent-soft); }
+.chip.wait { background: var(--warn-soft); }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+legend { font-weight: 700; margin-bottom: 4px; }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg label { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+.seg input { accent-color: var(--accent); margin-inline-end: 6px; }
+.seg label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.consent { display: flex; gap: 10px; align-items: flex-start; }
+.consent input { margin-top: 6px; accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
+button { font: 600 16px var(--body); border-radius: 8px; padding: 10px 18px; border: 1px solid var(--accent); cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); }
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible, .seg label:focus-within, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+textarea { width: 100%; min-height: 110px; font: 13px/1.4 ui-monospace, Consolas, monospace; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px; direction: ltr; box-sizing: border-box; }
+.owner { border-color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .2s; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <p class="step">ElectiveMatch-BIU · פרויקט NLP, הפקולטה להנדסה</p>
+    <h1>שיתוף מאזן לימודים לפרויקט</h1>
+    <p class="lede">אנחנו בונים מערכת שממליצה על קורסי בחירה לסטודנטים בהנדסה בבר-אילן. כדי לבדוק אותה אנחנו צריכים מאזני לימודים אמיתיים. העלאה לוקחת דקה.</p>
+  </header>
+
+  <section class="card" aria-labelledby="priv-h">
+    <h2 id="priv-h">מה נשמר ומה לא</h2>
+    <div class="privacy">
+      <div class="yes"><b>נשמר</b>השם שלך, המסלול, הקורסים, הציונים, נקודות הזכות והתקדמות בדרישות, ושלוש ההעדפות שתבחר/י למטה.</div>
+      <div class="no"><b>לא נשמר</b>מספר תעודת הזהות, וקובץ ה-PDF עצמו. הקובץ נקרא רק בדפדפן שלך ולא נשלח לשום מקום.</div>
+    </div>
+    <p class="muted">רק בעל הפרויקט (מיכאל חדרקביץ) רואה את ההגשות. סטודנטים אחרים לא רואים את הנתונים שלך.</p>
+  </section>
+
+  <section class="card" aria-labelledby="s1">
+    <h2 id="s1"><span class="step">שלב 1</span> בחירת קובץ</h2>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="application/pdf,.pdf">
+      <strong>גרור/י לכאן את קובץ מאזן הלימודים (PDF)</strong>
+      <span class="muted">או לחץ/י לבחירה · ההורדה מאתר האוניברסיטה: מידע אישי → מאזן לימודים</span>
+    </label>
+    <p id="parseMsg" class="muted" aria-live="polite">עדיין לא נבחר קובץ.</p>
+  </section>
+
+  <section class="card" aria-labelledby="s2" id="previewCard" hidden>
+    <h2 id="s2"><span class="step">שלב 2</span> בדיקה</h2>
+    <div class="stats" id="stats"></div>
+    <div class="tbl"><table><thead><tr><th>שם הקורס</th><th>ציון</th><th>נ"ז</th><th>שנה</th></tr></thead><tbody id="courseRows"></tbody></table></div>
+  </section>
+
+  <section class="card" aria-labelledby="s3" id="formCard" hidden>
+    <h2 id="s3"><span class="step">שלב 3</span> העדפות ושליחה</h2>
+    <fieldset id="fsWork"><legend>עומס שבועי רצוי בקורסי הבחירה</legend>
+      <div class="seg">
+        <label><input type="radio" name="workload" value="1" id="w1">1 · קל מאוד</label>
+        <label><input type="radio" name="workload" value="2" id="w2">2</label>
+        <label><input type="radio" name="workload" value="3" id="w3">3 · בינוני</label>
+        <label><input type="radio" name="workload" value="4" id="w4">4</label>
+        <label><input type="radio" name="workload" value="5" id="w5">5 · כבד</label>
+      </div></fieldset>
+    <fieldset id="fsGrade"><legend>צורת הערכה מועדפת</legend>
+      <div class="seg">
+        <label><input type="radio" name="grading" value="exam" id="g1">מבחן</label>
+        <label><input type="radio" name="grading" value="project" id="g2">פרויקט / תרגילים</label>
+        <label><input type="radio" name="grading" value="any" id="g3">לא משנה לי</label>
+      </div></fieldset>
+    <fieldset id="fsGoal"><legend>מטרה אחרי התואר</legend>
+      <div class="seg">
+        <label><input type="radio" name="goal" value="msc" id="o1">תואר שני / מחקר</label>
+        <label><input type="radio" name="goal" value="industry" id="o2">תעשייה</label>
+        <label><input type="radio" name="goal" value="undecided" id="o3">עוד לא החלטתי</label>
+      </div></fieldset>
+    <label class="consent"><input type="checkbox" id="consent">
+      <span>אני מסכים/ה שהשם, הציונים והנתונים שלמעלה יישמרו וישמשו את צוות ElectiveMatch (מיכאל חדרקביץ ומתן כהן) לפרויקט הקורס בלבד. אפשר לבקש מחיקה בכל עת.</span></label>
+    <div class="row">
+      <button class="primary" id="submit" disabled>שליחה</button>
+      <span id="submitMsg" aria-live="polite"></span>
+    </div>
+    <div id="fallback" hidden style="display:grid;gap:10px">
+      <p>לא ניתן לשמור ישירות מהחשבון הזה. העתק/י את הנתונים ושלח/י אותם למיכאל (וואטסאפ / מייל):</p>
+      <div class="row"><button class="ghost" id="copyBtn">העתקת הנתונים</button><span id="copyMsg" class="muted" aria-live="polite"></span></div>
+      <textarea id="fallbackText" readonly aria-label="הנתונים להעתקה"></textarea>
+    </div>
+  </section>
+
+  <section class="card owner" id="ownerCard" hidden aria-labelledby="own-h">
+    <h2 id="own-h">הגשות (רק את/ה רואה את זה)</h2>
+    <p class="muted" id="ownerMsg">טוען הגשות…</p>
+    <div class="tbl" id="subsWrap" hidden><table><thead><tr><th>שם</th><th>מסלול</th><th>קורסים עם ציון</th><th>ממוצע</th><th>העדפות</th><th>הוגש</th></tr></thead><tbody id="subRows"></tbody></table></div>
+    <div class="row"><button class="primary" id="dlBtn" disabled>הורדת הכל כ-CSV</button><span id="dlMsg" class="muted" aria-live="polite"></span></div>
+    <details><summary>הוספת הגשה שנשלחה אליך בהודעה</summary>
+      <div style="display:grid;gap:10px;margin-top:10px">
+        <textarea id="importText" placeholder="הדבק/י כאן את הנתונים שהועתקו מהדף"></textarea>
+        <div class="row"><button class="ghost" id="importBtn">הוספה</button><span id="importMsg" aria-live="polite"></span></div>
+      </div>
+    </details>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+// Bar-Ilan "מאזן לימודים" parser for pdf.js text content (browser + node).
+// The PDF's David font stores Hebrew as codes 0x9A..0xB4 (= א..ת, in cp1255 order minus 0x46);
+// the bold variant also stores some punctuation by glyph id.
+function maazanParse(pages) {
+  const BOLD_PUNCT = { 0x06: '"', 0x0a: "'", 0x0b: "(", 0x0c: ")", 0x10: ",", 0x11: "-", 0x12: ".",
+                       0x13: "/", 0x1e: ":", 0xd0: "–" };
+  const HEB = /[א-ת]/;
+  const LTR = /[0-9A-Za-z][0-9A-Za-z.\-/:,_]*[0-9A-Za-z]|[0-9A-Za-z]/g;
+  const MIRROR = { "(": ")", ")": "(", "[": "]", "]": "[" };
+  const BORDERS = [38, 72, 108, 398, 442, 509, 563];
+  const COLS = ["grade", "credits", "name", "type", "code", "year"];
+  const GEM = Object.fromEntries([..."אבגדהוזחטיכלמנסעפצקרשת"].map((c, i) =>
+    [c, [1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400][i]]));
+  const HEADER = { "ת.לימודים": "degree", "מסלול": "track", "ש.ליעוץ": "advisory_year",
+                   "רמת אנגלית": "english_level", "רמת עברית": "hebrew_level", "סטטוס": "status",
+                   "שם": "name" };            // ID ("זיהוי") is deliberately never extracted
+  const LABELS = new Set([...Object.keys(HEADER), "זיהוי"]);
+
+  const decodeChar = (ch) => {
+    const c = ch.charCodeAt(0);
+    if (c >= 0x9a && c <= 0xb4) return String.fromCharCode(c - 0x9a + 0x5d0);
+    if (BOLD_PUNCT[c] !== undefined) return BOLD_PUNCT[c];
+    if (c < 0x20 || (c >= 0x80 && c < 0xa0) || c === 0xf8ff) return "";
+    return ch;
+  };
+  const toLogical = (v) => {
+    if (!HEB.test(v)) return v;
+    const s = [...v].reverse().map((c) => MIRROR[c] || c).join("");
+    return s.replace(LTR, (m) => [...m].reverse().join(""));
+  };
+  const rtlJoin = (spans) => spans.slice().sort((a, b) => b.x1 - a.x1).map((s) => s.text).join("")
+    .replace(/\s+/g, " ").trim();
+  const yearToGreg = (hy) => {
+    const ls = [...(hy || "")].filter((c) => GEM[c]);
+    return ls.length ? 5000 + ls.reduce((a, c) => a + GEM[c], 0) - 3761 : null;
+  };
+
+  const out = { meta: {}, sections: [], courses: [] };
+  let section = null, inTable = false, lastRow = null, specY = null;
+
+  // pages: [{items: textContent.items, glyphs: [{unicode, originalCharCode}] from showText ops}]
+  pages.forEach(({ items, glyphs }, pageNo) => {
+    // pdf.js renders code 0xA0 (= ז) as a space; recover it by aligning text chars with glyphs
+    // (pdf.js may move a space into its own item, so find each item's whole char sequence in the glyph stream)
+    let j = 0;
+    const isWs = (c) => /\s/.test(c || "");
+    const fixItem = (str) => {
+      const chars = [...str];
+      if (!chars.some(isWs) || chars.every(isWs)) return chars.map(decodeChar).join("");
+      const same = (g, ch) => g && (g.unicode === ch || (isWs(g.unicode) && isWs(ch)));
+      const from = Math.max(0, j - 40);
+      for (let s = from; s <= glyphs.length - chars.length; s++) {
+        if (chars.every((ch, i) => same(glyphs[s + i], ch))) {
+          j = s + chars.length;
+          return chars.map((ch, i) => isWs(ch) && glyphs[s + i].originalCharCode === 0xa0 ? "ז" : decodeChar(ch)).join("");
+        }
+      }
+      return chars.map(decodeChar).join("");  // not found: keep spaces as spaces
+    };
+    const spans = items.filter((it) => it.str).map((it) => {
+      const text = toLogical(fixItem(it.str));
+      const x0 = it.transform[4];
+      return { x0, x1: x0 + it.width, y: Math.round(it.transform[5]), text };
+    }).filter((s) => s.text && s.x1 > s.x0);
+
+    // group into rows (top to bottom)
+    spans.sort((a, b) => b.y - a.y || b.x1 - a.x1);
+    const rows = [];
+    for (const s of spans) {
+      const r = rows[rows.length - 1];
+      if (r && Math.abs(r[0].y - s.y) <= 2) r.push(s); else rows.push([s]);
+    }
+
+    for (const row of rows) {
+      const line = rtlJoin(row);
+      if (!line) continue;
+
+      if (!out.sections.length && !inTable) {
+        for (const s of row) {
+          const lab = s.text.trim().replace(/:$/, "").trim();
+          if (HEADER[lab]) {
+            const left = row.filter((v) => v.x1 <= s.x0 + 1);
+            const stop = Math.max(0, ...left.filter((v) => LABELS.has(v.text.trim().replace(/:$/, "").trim()))
+              .map((v) => v.x1));
+            let val = left.filter((v) => v.x0 >= stop);
+            if (HEADER[lab] === "name") val = val.filter((v) => v.x0 > 300);  // ID sits on the left half
+            out.meta[HEADER[lab]] = rtlJoin(val);
+          }
+        }
+        if (line.includes("התמחויות")) { specY = row[0].y; out.meta.specializations = line.split(":").slice(1).join(":").trim(); }
+        else if (specY !== null && specY - row[0].y > 0 && specY - row[0].y < 12) out.meta.specializations += " " + line;
+      }
+
+      const sum = line.match(/מינ'\s*נ"ז\s*:?\s*([\d.]+).*?מקס'\s*נ"ז\s*:?\s*([\d.]+).*?שנצברו\s*:?\s*([\d.]+)/);
+      if (sum && section) {
+        Object.assign(section, { min_credits: +sum[1], max_credits: +sum[2], earned_credits: +sum[3] });
+        continue;
+      }
+      const sec = line.match(/^(\d{1,8})\s*-\s*(.+)$/);
+      if (sec && !row.some((s) => s.x1 <= BORDERS[2])) {
+        section = { section_code: sec[1], section_name: sec[2].trim() };
+        out.sections.push(section);
+        continue;
+      }
+      if (line.startsWith("קבוצות קורס ללא שיוך")) {
+        section = { section_code: "unassigned", section_name: line };
+        out.sections.push(section);
+        continue;
+      }
+
+      const cells = Object.fromEntries(COLS.map((c) => [c, []]));
+      for (const s of row) {
+        const xc = (s.x0 + s.x1) / 2;
+        COLS.forEach((c, i) => { if (xc >= BORDERS[i] && xc < BORDERS[i + 1]) cells[c].push(s); });
+      }
+      for (const c of COLS) cells[c] = rtlJoin(cells[c]);
+      // a ז at the edge of a text item can come through as a bare space; a year never ends in '"'
+      if (/^[א-ת]+"$/.test(cells.year)) cells.year += "ז";
+
+      if (cells.name === "שם" && cells.code === "קוד") { inTable = true; continue; }
+      if (!inTable || !section || !COLS.some((c) => cells[c])) continue;
+
+      if (!/^\d{4,6}(-\d{2})?$/.test(cells.code)) {
+        if (out.courses.length && !cells.code && !cells.credits && lastRow &&
+            lastRow.page === pageNo && lastRow.y - row[0].y > 0 && lastRow.y - row[0].y < 12) {
+          const prev = out.courses[out.courses.length - 1];
+          for (const c of ["name", "type"]) if (cells[c]) prev[c] = `${prev[c]} ${cells[c]}`.trim();
+        }
+        continue;
+      }
+      lastRow = { page: pageNo, y: row[0].y };
+      const [base, grp] = cells.code.split("-");
+      const g = cells.grade;
+      out.courses.push({
+        section_code: section.section_code, section_name: section.section_name,
+        year_hebrew: cells.year, year: yearToGreg(cells.year), code: cells.code,
+        course_id: base, group: grp || null, type: cells.type, name: cells.name,
+        credits: /^[\d.]+$/.test(cells.credits) ? +cells.credits : null,
+        grade_raw: g, grade: /^\d+$/.test(g) ? +g : null,
+        status: g.startsWith("נ") ? "failed" : g === "עובר" ? "pass" : g === "פטור" ? "exempt"
+          : /^\d+$/.test(g) ? "graded" : !cells.year ? "requirement" : "no_grade",
+      });
+    }
+  });
+  if (out.meta.name) out.meta.name = out.meta.name.replace(/\d{5,}/g, "").trim();  // never keep an ID number
+  const used = new Set(out.courses.map((c) => c.section_code));
+  out.sections = out.sections.filter((s) => "min_credits" in s || used.has(s.section_code));
+  for (const s of out.sections) if ("min_credits" in s) s.remaining_credits = Math.max(0, s.min_credits - s.earned_credits);
+  return out;
+}
+
+// One row per course: lecture/exercise/lab merged, credits summed, sorted by year.
+function maazanCourseList(courses) {
+  const keep = courses.filter((c) => c.status !== "requirement" && c.type !== "ש.מחלקה");
+  const by = new Map();
+  keep.forEach((c, i) => { if (!by.has(c.course_id)) by.set(c.course_id, { rows: [], order: i }); by.get(c.course_id).rows.push(c); });
+  const list = [...by.entries()].map(([id, { rows, order }]) => {
+    const lect = rows.find((r) => r.type === "הרצאה") || rows[0];
+    const graded = rows.filter((r) => r.grade !== null);
+    const raw = rows.map((r) => r.grade_raw).filter(Boolean);
+    const years = rows.map((r) => r.year).filter(Boolean);
+    return {
+      course_id: id, name: lect.name,
+      grade: graded.length ? String(Math.max(...graded.map((r) => r.grade))) : (raw[0] || ""),
+      credits: rows.reduce((a, r) => a + (r.credits || 0), 0),
+      year: rows.map((r) => r.year_hebrew).find(Boolean) || "",
+      _y: years.length ? Math.min(...years) : 9999, _o: order,
+    };
+  });
+  list.sort((a, b) => a._y - b._y || a._o - b._o);
+  return list.map(({ _y, _o, ...r }) => r);
+}
+
+
+const $ = (id) => document.getElementById(id);
+const PARSER_VERSION = 1;
+let parsed = null, list = null, db = null, userCap = null, uid = null;
+
+// ---------- PDF reading (runs in the browser only; the file is never uploaded)
+async function readPdf(file) {
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjsLib.getDocument({ data, disableFontFace: true, isEvalSupported: false }).promise;
+  const pages = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const items = (await page.getTextContent()).items;
+    const ol = await page.getOperatorList();
+    const glyphs = [];
+    ol.fnArray.forEach((fn, k) => {
+      if (fn === pdfjsLib.OPS.showText) for (const g of ol.argsArray[k][0])
+        if (g && typeof g === "object") glyphs.push({ unicode: g.unicode, originalCharCode: g.originalCharCode });
+    });
+    pages.push({ items, glyphs });
+  }
+  return maazanParse(pages);
+}
+
+function weightedAvg(rows) {
+  const g = rows.filter((r) => /^\d+$/.test(r.grade) && r.credits > 0);
+  const c = g.reduce((a, r) => a + r.credits, 0);
+  return c ? g.reduce((a, r) => a + +r.grade * r.credits, 0) / c : null;
+}
+
+function text(el, s) { el.textContent = s; return el; }
+function td(s, cls) { const e = document.createElement("td"); if (cls) e.className = cls; e.textContent = s; return e; }
+
+async function handleFile(file) {
+  if (!file) return;
+  const msg = $("parseMsg");
+  msg.className = "muted"; text(msg, "קורא את הקובץ…");
+  try {
+    if (typeof pdfjsLib === "undefined") throw new Error("קורא ה-PDF לא נטען. רענן/י את הדף ונסה/י שוב.");
+    parsed = await readPdf(file);
+    if (!parsed.courses.length) throw new Error("לא נמצאה טבלת קורסים. ודא/י שזה קובץ \"מאזן לימודים\" מאתר בר-אילן.");
+    list = maazanCourseList(parsed.courses);
+  } catch (e) {
+    parsed = list = null;
+    msg.className = "err"; text(msg, e.message || "לא ניתן לקרוא את הקובץ.");
+    $("previewCard").hidden = $("formCard").hidden = true;
+    return;
+  }
+  msg.className = "ok"; text(msg, `✓ נקרא: ${file.name}`);
+  renderPreview();
+  $("previewCard").hidden = $("formCard").hidden = false;
+  updateSubmit();
+}
+
+function renderPreview() {
+  const m = parsed.meta, graded = list.filter((r) => /^\d+$/.test(r.grade));
+  const avg = weightedAvg(list);
+  const st = $("stats"); st.replaceChildren();
+  [["שם", m.name || "—"], ["מסלול", m.track || "—"], ["קורסים", list.length], ["עם ציון", graded.length],
+   ["ממוצע משוקלל (הערכה)", avg ? avg.toFixed(1) : "—"]].forEach(([k, v]) => {
+    const s = document.createElement("span"); s.append(k + ": "); const b = document.createElement("b"); b.textContent = v; s.append(b); st.append(s);
+  });
+  const tb = $("courseRows"); tb.replaceChildren();
+  for (const r of list) {
+    const tr = document.createElement("tr");
+    const gradeCell = td("", "num");
+    if (r.grade) gradeCell.textContent = r.grade; else { const c = document.createElement("span"); c.className = "chip wait"; c.textContent = "טרם"; gradeCell.append(c); }
+    tr.append(td(r.name, "name"), gradeCell, td(String(r.credits), "num"), td(r.year));
+    tb.append(tr);
+  }
+}
+
+function prefs() {
+  const v = (n) => document.querySelector(`input[name="${n}"]:checked`)?.value || null;
+  return { workload: v("workload") ? +v("workload") : null, grading: v("grading"), goal: v("goal") };
+}
+function updateSubmit() {
+  const p = prefs();
+  $("submit").disabled = !(parsed && $("consent").checked && p.workload && p.grading && p.goal);
+}
+function buildSubmission() {
+  const m = parsed.meta;
+  return {
+    name: m.name || "", track: m.track || "", specializations: m.specializations || "", degree: m.degree || "",
+    preferences: prefs(), course_list: list,
+    courses: parsed.courses.map(({ section_code, year_hebrew, year, code, course_id, type, name, credits, grade_raw, grade, status }) =>
+      ({ section_code, year_hebrew, year, code, course_id, type, name, credits, grade_raw, grade, status })),
+    sections: parsed.sections, consent: true, submitted_at: new Date().toISOString(), parser_version: PARSER_VERSION,
+  };
+}
+
+async function submit() {
+  const sub = buildSubmission();
+  const msg = $("submitMsg");
+  $("submit").disabled = true; msg.className = "muted"; text(msg, "שולח…");
+  if (db && uid) {
+    try {
+      await db.doc("submissions/" + uid).set({ ...sub, source: "page" });
+      msg.className = "ok"; text(msg, "✓ נשלח. תודה! אפשר לשלוח שוב כדי לעדכן.");
+      $("fallback").hidden = true; updateSubmit();
+      return;
+    } catch (e) { /* fall through to copy/paste */ }
+  }
+  msg.className = "muted"; text(msg, "");
+  $("fallbackText").value = JSON.stringify(sub);
+  $("fallback").hidden = false; updateSubmit();
+}
+
+// ---------- owner panel
+let subs = [];
+function renderSubs() {
+  const tb = $("subRows"); tb.replaceChildren();
+  $("subsWrap").hidden = !subs.length;
+  $("dlBtn").disabled = !subs.length;
+  text($("ownerMsg"), subs.length ? `${subs.length} הגשות` : "עדיין אין הגשות. שלח/י את הקישור לחברים כדי להתחיל.");
+  const label = { exam: "מבחן", project: "פרויקט", any: "לא משנה", msc: "תואר שני", industry: "תעשייה", undecided: "לא החליט/ה" };
+  for (const s of subs) {
+    const cl = s.course_list || [], avg = weightedAvg(cl), p = s.preferences || {};
+    const tr = document.createElement("tr");
+    tr.append(td(s.name || "—", "name"), td(s.track || "—", "name"), td(String(cl.filter((r) => /^\d+$/.test(r.grade)).length), "num"),
+      td(avg ? avg.toFixed(1) : "—", "num"), td(`עומס ${p.workload ?? "?"} · ${label[p.grading] || "?"} · ${label[p.goal] || "?"}`),
+      td(s.submitted_at ? new Date(s.submitted_at).toLocaleDateString("he-IL") : "—"));
+    tb.append(tr);
+  }
+}
+function toCsv() {
+  const cols = ["student", "track", "workload", "grading", "goal", "course_id", "course_name", "grade", "credits", "year", "submitted_at"];
+  const esc = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const lines = [cols.join(",")];
+  for (const s of subs) for (const r of s.course_list || []) {
+    const p = s.preferences || {};
+    lines.push([s.name, s.track, p.workload, p.grading, p.goal, r.course_id, r.name, r.grade, r.credits, r.year, s.submitted_at].map(esc).join(","));
+  }
+  return "﻿" + lines.join("\n");  // BOM so Excel shows Hebrew
+}
+async function setupOwner() {
+  $("ownerCard").hidden = false;
+  const timer = setTimeout(() => text($("ownerMsg"), "ההגשות עדיין לא נטענו. בדוק/י את החיבור."), 10000);
+  db.collection("submissions").onSnapshot((snap) => {
+    if (!snap.metadata.fromCache) clearTimeout(timer);
+    subs = snap.docs.map((d) => d.data()).sort((a, b) => (b.submitted_at || "").localeCompare(a.submitted_at || ""));
+    renderSubs();
+  }, () => { clearTimeout(timer); text($("ownerMsg"), "לא ניתן לטעון את ההגשות כרגע."); });
+
+  const dl = await claude.use("downloads");
+  $("dlBtn").addEventListener("click", async () => {
+    if (!dl) { text($("dlMsg"), "הורדה לא זמינה בתצוגה הזו."); return; }
+    try { await dl.save({ filename: "electivematch_submissions.csv", data: toCsv() }); text($("dlMsg"), "✓ נשמר"); }
+    catch (e) { text($("dlMsg"), e?.code === "declined" ? "ההורדה בוטלה." : "ההורדה לא הצליחה."); }
+  });
+  $("importBtn").addEventListener("click", async () => {
+    const m = $("importMsg");
+    try {
+      const s = JSON.parse($("importText").value);
+      if (!Array.isArray(s.course_list) || !s.consent) throw new Error();
+      s.name = String(s.name || "").replace(/\d{5,}/g, "").trim();
+      const id = "imported-" + Date.now().toString(36);
+      await db.doc("submissions/" + id).set({ ...s, source: "pasted" });
+      m.className = "ok"; text(m, "✓ נוסף"); $("importText").value = "";
+    } catch { m.className = "err"; text(m, "הטקסט לא תקין. הדבק/י את כל מה שהועתק מהדף."); }
+  });
+}
+
+// ---------- wiring
+const drop = $("drop");
+$("file").addEventListener("change", (e) => handleFile(e.target.files[0]));
+["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
+document.querySelectorAll('input[type="radio"], #consent').forEach((el) => el.addEventListener("change", updateSubmit));
+$("submit").addEventListener("click", submit);
+$("copyBtn").addEventListener("click", async () => {
+  const t = $("fallbackText");
+  try { await navigator.clipboard.writeText(t.value); text($("copyMsg"), "✓ הועתק"); }
+  catch { t.focus(); t.select(); text($("copyMsg"), "סמן/י והעתק/י ידנית (Ctrl+C)."); }
+});
+
+(async () => {
+  [db, userCap] = await Promise.all([claude.use("db"), claude.use("user")]);
+  uid = userCap ? await userCap.id() : null;
+  if (db && userCap && await userCap.isOwner()) setupOwner();
+})();
+</script>

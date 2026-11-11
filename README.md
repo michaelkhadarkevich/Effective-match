@@ -102,3 +102,12 @@ Double-click **`Maazan App.bat`** (or drag a מאזן לימודים PDF onto it
 Lecturers are not in the PDF: double-click a course to type its lecturer — saved in `data/catalog/lecturers.csv`
 and reused for every PDF; and **Save results**
 writes CSV files that open in Excel. Runs locally; nothing is uploaded.
+
+## Transcript collection page (web)
+
+[`web/collect.html`](web/collect.html) is a page friends open from a link: they drop their מאזן לימודים PDF, it is
+parsed **in their browser** ([`web/maazan-parse.js`](web/maazan-parse.js), a port of the Python parser, verified to
+give identical output), they pick the 3 preferences (workload, exam/project, M.Sc./industry), consent, and submit.
+Saved: name, track, courses, grades, credits, requirement progress, preferences. Never saved: ID number, the PDF.
+Only the owner can read submissions and download them as CSV. Rebuild after editing the template or parser:
+`collect.template.html` + `maazan-parse.js` → `collect.html`.
