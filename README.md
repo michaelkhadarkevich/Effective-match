@@ -39,7 +39,11 @@ transcript ─► preprocessing ─► prerequisite / eligibility filter ─► 
 
 ## Evaluation
 
-- **Temporal split**: hide each real student's last semester and predict it from earlier ones.
+- **Rolling backtest** ([`src/evaluation/rolling_eval.py`](src/evaluation/rolling_eval.py)):
+  fold 1 hides each student's last semester and forecasts it from everything before; fold 2 hides the
+  last two semesters and forecasts the second-to-last; and so on. Each fold forecasts
+  **which courses** the student takes next (precision / recall / F1) and **what grades** they get (MAE / RMSE).
+  Models only see data from before the forecast semester, so there is no leakage from the future.
 - **Grade metrics**: MAE, RMSE, calibration of P(grade ≥ 85).
 - **Ranking metrics**: NDCG@k, Precision@k vs. courses the student actually did well in.
 - **Main experiment**: error vs. number of real training transcripts, with / without synthetic pretraining.
@@ -67,6 +71,7 @@ src/
 pip install -r requirements.txt
 python src/synthetic/generator.py --n-students 2000 --out data/synthetic/transcripts.csv
 python src/models/baselines.py --data data/synthetic/transcripts.csv
+python src/evaluation/rolling_eval.py --data data/synthetic/transcripts.csv --max-k 4
 ```
 
 ## Milestones
