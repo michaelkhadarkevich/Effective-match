@@ -1,5 +1,7 @@
 # Effective-match — Course Recommendation for Bar-Ilan Engineering
 
+**Team:** Michael Khadarkevich, Matan Coen · **Instructor:** Dr. Alexander Apartsin · Bar-Ilan University, Faculty of Engineering
+
 Grade-aware elective recommendation for students of the Bar-Ilan University Faculty of Engineering.
 Given a student's partial transcript (courses, semesters, grades), track, and interests, the system
 predicts the student's expected grade in each eligible course and recommends a ranked list of electives
