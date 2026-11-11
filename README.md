@@ -70,6 +70,7 @@ src/
 ```bash
 pip install -r requirements.txt
 python src/synthetic/generator.py --n-students 2000 --out data/synthetic/transcripts.csv
+python src/data/expand_prefixes.py --data data/synthetic/transcripts.csv --out data/synthetic/samples.csv
 python src/models/baselines.py --data data/synthetic/transcripts.csv
 python src/evaluation/rolling_eval.py --data data/synthetic/transcripts.csv --max-k 4
 ```
