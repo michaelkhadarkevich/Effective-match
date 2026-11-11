@@ -5,11 +5,6 @@ Given a student's partial transcript (courses, semesters, grades), track, and in
 predicts the student's expected grade in each eligible course and recommends a ranked list of electives
 that respects prerequisites and degree requirements.
 
-## Research question
-
-> With only a few dozen real transcripts, does pretraining on **calibrated synthetic transcripts** improve
-> grade prediction and course recommendation for real students — and how large is the sim-to-real gap?
-
 ## Task formulation
 
 | | |
