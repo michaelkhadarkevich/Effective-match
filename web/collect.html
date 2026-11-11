@@ -102,7 +102,7 @@ textarea { width: 100%; min-height: 110px; font: 13px/1.4 ui-monospace, Consolas
   <section class="card" aria-labelledby="s2" id="previewCard" hidden>
     <h2 id="s2"><span class="step">שלב 2</span> בדיקה</h2>
     <div class="stats" id="stats"></div>
-    <p class="muted">הסמסטר לא מופיע במאזן. בחר/י באיזה סמסטר לקחת כל קורס (חלק מולאו מראש — תקן/י אם צריך).</p>
+    <p class="muted">הסמסטר לא מופיע במאזן, אז מילאנו אותו מראש לפי מערכת השעות של הפקולטה. בדוק/י ותקן/י אם לקחת קורס בסמסטר אחר.</p>
     <div class="tbl"><table><thead><tr><th>שם הקורס</th><th>ציון</th><th>נ"ז</th><th>שנה</th><th>סמסטר</th></tr></thead><tbody id="courseRows"></tbody></table></div>
     <p class="muted" id="semCount"></p>
   </section>
@@ -150,7 +150,7 @@ textarea { width: 100%; min-height: 110px; font: 13px/1.4 ui-monospace, Consolas
     <div style="display:grid;gap:8px">
       <p><b>טבלת סמסטרים למילוי מראש</b> — <span id="semTableMsg" class="muted">טוען…</span></p>
       <div class="row"><button class="ghost" id="semBuildBtn">בנייה מחדש מההגשות</button><span id="semBuildMsg" aria-live="polite"></span></div>
-      <p class="muted">לכל קורס נבחר הסמסטר שרוב הסטודנטים סימנו. הטבלה ממלאת מראש את הסמסטרים לחברים הבאים, והם יכולים לתקן.</p>
+      <p class="muted">הבסיס: מערכות השעות הרשמיות של הפקולטה להנדסה לתשפ"ז. הכפתור מוסיף מעליהן את הסמסטר שרוב הסטודנטים סימנו לכל קורס. החברים מקבלים מילוי מראש ויכולים לתקן.</p>
     </div>
     <details><summary>הוספת הגשה שנשלחה אליך בהודעה</summary>
       <div style="display:grid;gap:10px;margin-top:10px">
@@ -431,7 +431,7 @@ function semCount() {
 }
 
 // ---------- default semester table (catalog/semesters, written by the owner)
-let semesterMap = {};
+let semesterMap = {}, timetableMap = {}, studentMap = {};  // official timetable + friends' majority (wins)
 function applySemesterDefaults() {
   if (!list) return;
   for (const r of list) if (!r.semester && semesterMap[r.course_id]) { r.semester = semesterMap[r.course_id]; r.semester_source = "table"; }
@@ -440,7 +440,9 @@ async function loadSemesterTable() {
   if (!db) return;
   try {
     const snap = await db.doc("catalog/semesters").get();
-    semesterMap = (snap.exists && snap.data().map) || {};
+    const d = snap.exists ? snap.data() : {};
+    timetableMap = d.timetable || {}; studentMap = d.map || {};
+    semesterMap = { ...timetableMap, ...studentMap };
     if (list) { applySemesterDefaults(); renderPreview(); }
   } catch { /* no table yet */ }
 }
@@ -517,8 +519,8 @@ async function setupOwner() {
     renderSubs();
   }, () => { clearTimeout(timer); text($("ownerMsg"), "לא ניתן לטעון את ההגשות כרגע."); });
 
-  const showSemTable = () => text($("semTableMsg"), Object.keys(semesterMap).length
-    ? `${Object.keys(semesterMap).length} קורסים בטבלה` : "הטבלה ריקה עדיין");
+  const showSemTable = () => text($("semTableMsg"),
+    `${Object.keys(timetableMap).length} קורסים ממערכת השעות הרשמית (תשפ"ז) · ${Object.keys(studentMap).length} לפי בחירת רוב הסטודנטים`);
   showSemTable();
   $("semBuildBtn").addEventListener("click", async () => {
     const votes = {};
@@ -529,8 +531,8 @@ async function setupOwner() {
     const m = $("semBuildMsg");
     if (!Object.keys(map).length) { m.className = "muted"; text(m, "אין עדיין סמסטרים שסטודנטים בחרו."); return; }
     try {
-      await db.doc("catalog/semesters").set({ map, updated_at: new Date().toISOString() });
-      semesterMap = map; showSemTable(); m.className = "ok"; text(m, "✓ עודכן");
+      await db.doc("catalog/semesters").update({ map, updated_at: new Date().toISOString() });
+      studentMap = map; semesterMap = { ...timetableMap, ...studentMap }; showSemTable(); m.className = "ok"; text(m, "✓ עודכן");
     } catch { m.className = "err"; text(m, "השמירה לא הצליחה."); }
   });
 
