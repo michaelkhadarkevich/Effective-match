@@ -50,6 +50,8 @@ th, td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--li
 td.name { white-space: normal; min-width: 180px; }
 th { position: sticky; top: 0; background: var(--card); font-weight: 700; }
 td.num { font-variant-numeric: tabular-nums; }
+td select { font: 15px var(--body); background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+td select.empty { border-color: var(--warn); }
 .chip { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 13px; background: var(--accent-soft); }
 .chip.wait { background: var(--warn-soft); }
 fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
@@ -100,7 +102,9 @@ textarea { width: 100%; min-height: 110px; font: 13px/1.4 ui-monospace, Consolas
   <section class="card" aria-labelledby="s2" id="previewCard" hidden>
     <h2 id="s2"><span class="step">שלב 2</span> בדיקה</h2>
     <div class="stats" id="stats"></div>
-    <div class="tbl"><table><thead><tr><th>שם הקורס</th><th>ציון</th><th>נ"ז</th><th>שנה</th></tr></thead><tbody id="courseRows"></tbody></table></div>
+    <p class="muted">הסמסטר לא מופיע במאזן. בחר/י באיזה סמסטר לקחת כל קורס (חלק מולאו מראש — תקן/י אם צריך).</p>
+    <div class="tbl"><table><thead><tr><th>שם הקורס</th><th>ציון</th><th>נ"ז</th><th>שנה</th><th>סמסטר</th></tr></thead><tbody id="courseRows"></tbody></table></div>
+    <p class="muted" id="semCount"></p>
   </section>
 
   <section class="card" aria-labelledby="s3" id="formCard" hidden>
@@ -143,6 +147,11 @@ textarea { width: 100%; min-height: 110px; font: 13px/1.4 ui-monospace, Consolas
     <p class="muted" id="ownerMsg">טוען הגשות…</p>
     <div class="tbl" id="subsWrap" hidden><table><thead><tr><th>שם</th><th>מסלול</th><th>קורסים עם ציון</th><th>ממוצע</th><th>העדפות</th><th>הוגש</th></tr></thead><tbody id="subRows"></tbody></table></div>
     <div class="row"><button class="primary" id="dlBtn" disabled>הורדת הכל כ-CSV</button><span id="dlMsg" class="muted" aria-live="polite"></span></div>
+    <div style="display:grid;gap:8px">
+      <p><b>טבלת סמסטרים למילוי מראש</b> — <span id="semTableMsg" class="muted">טוען…</span></p>
+      <div class="row"><button class="ghost" id="semBuildBtn">בנייה מחדש מההגשות</button><span id="semBuildMsg" aria-live="polite"></span></div>
+      <p class="muted">לכל קורס נבחר הסמסטר שרוב הסטודנטים סימנו. הטבלה ממלאת מראש את הסמסטרים לחברים הבאים, והם יכולים לתקן.</p>
+    </div>
     <details><summary>הוספת הגשה שנשלחה אליך בהודעה</summary>
       <div style="display:grid;gap:10px;margin-top:10px">
         <textarea id="importText" placeholder="הדבק/י כאן את הנתונים שהועתקו מהדף"></textarea>
@@ -205,6 +214,7 @@ async function handleFile(file) {
     return;
   }
   msg.className = "ok"; text(msg, `✓ נקרא: ${file.name}`);
+  applySemesterDefaults();
   renderPreview();
   $("previewCard").hidden = $("formCard").hidden = false;
   updateSubmit();
@@ -223,9 +233,41 @@ function renderPreview() {
     const tr = document.createElement("tr");
     const gradeCell = td("", "num");
     if (r.grade) gradeCell.textContent = r.grade; else { const c = document.createElement("span"); c.className = "chip wait"; c.textContent = "טרם"; gradeCell.append(c); }
-    tr.append(td(r.name, "name"), gradeCell, td(String(r.credits), "num"), td(r.year));
+    const semCell = document.createElement("td");
+    const sel = document.createElement("select");
+    sel.id = "sem-" + r.course_id;
+    sel.setAttribute("aria-label", "סמסטר: " + r.name);
+    for (const [v, l] of [["", "—"], ["א", "א"], ["ב", "ב"], ["קיץ", "קיץ"]]) {
+      const o = document.createElement("option"); o.value = v; o.textContent = l; sel.append(o);
+    }
+    sel.value = r.semester || "";
+    sel.classList.toggle("empty", !sel.value);
+    sel.addEventListener("change", () => { r.semester = sel.value; r.semester_source = "student"; sel.classList.toggle("empty", !sel.value); semCount(); });
+    semCell.append(sel);
+    tr.append(td(r.name, "name"), gradeCell, td(String(r.credits), "num"), td(r.year), semCell);
     tb.append(tr);
   }
+  semCount();
+}
+function semCount() {
+  if (!list) return;
+  const missing = list.filter((r) => !r.semester).length;
+  text($("semCount"), missing ? `חסר סמסטר ב-${missing} מתוך ${list.length} קורסים (אפשר לשלוח גם כך).` : "✓ לכל הקורסים יש סמסטר.");
+}
+
+// ---------- default semester table (catalog/semesters, written by the owner)
+let semesterMap = {};
+function applySemesterDefaults() {
+  if (!list) return;
+  for (const r of list) if (!r.semester && semesterMap[r.course_id]) { r.semester = semesterMap[r.course_id]; r.semester_source = "table"; }
+}
+async function loadSemesterTable() {
+  if (!db) return;
+  try {
+    const snap = await db.doc("catalog/semesters").get();
+    semesterMap = (snap.exists && snap.data().map) || {};
+    if (list) { applySemesterDefaults(); renderPreview(); }
+  } catch { /* no table yet */ }
 }
 
 function prefs() {
@@ -282,12 +324,12 @@ function renderSubs() {
   }
 }
 function toCsv() {
-  const cols = ["student", "track", "workload", "grading", "goal", "course_id", "course_name", "grade", "credits", "year", "submitted_at"];
+  const cols = ["student", "track", "workload", "grading", "goal", "course_id", "course_name", "grade", "credits", "year", "semester", "submitted_at"];
   const esc = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const lines = [cols.join(",")];
   for (const s of subs) for (const r of s.course_list || []) {
     const p = s.preferences || {};
-    lines.push([s.name, s.track, p.workload, p.grading, p.goal, r.course_id, r.name, r.grade, r.credits, r.year, s.submitted_at].map(esc).join(","));
+    lines.push([s.name, s.track, p.workload, p.grading, p.goal, r.course_id, r.name, r.grade, r.credits, r.year, r.semester || "", s.submitted_at].map(esc).join(","));
   }
   return "﻿" + lines.join("\n");  // BOM so Excel shows Hebrew
 }
@@ -299,6 +341,23 @@ async function setupOwner() {
     subs = snap.docs.map((d) => d.data()).sort((a, b) => (b.submitted_at || "").localeCompare(a.submitted_at || ""));
     renderSubs();
   }, () => { clearTimeout(timer); text($("ownerMsg"), "לא ניתן לטעון את ההגשות כרגע."); });
+
+  const showSemTable = () => text($("semTableMsg"), Object.keys(semesterMap).length
+    ? `${Object.keys(semesterMap).length} קורסים בטבלה` : "הטבלה ריקה עדיין");
+  showSemTable();
+  $("semBuildBtn").addEventListener("click", async () => {
+    const votes = {};
+    for (const s of subs) for (const r of s.course_list || [])
+      if (r.semester && r.semester_source === "student") ((votes[r.course_id] ||= {})[r.semester] = (votes[r.course_id]?.[r.semester] || 0) + 1);
+    const map = {};
+    for (const [id, v] of Object.entries(votes)) map[id] = Object.entries(v).sort((a, b) => b[1] - a[1])[0][0];
+    const m = $("semBuildMsg");
+    if (!Object.keys(map).length) { m.className = "muted"; text(m, "אין עדיין סמסטרים שסטודנטים בחרו."); return; }
+    try {
+      await db.doc("catalog/semesters").set({ map, updated_at: new Date().toISOString() });
+      semesterMap = map; showSemTable(); m.className = "ok"; text(m, "✓ עודכן");
+    } catch { m.className = "err"; text(m, "השמירה לא הצליחה."); }
+  });
 
   const dl = await claude.use("downloads");
   $("dlBtn").addEventListener("click", async () => {
@@ -336,6 +395,7 @@ $("copyBtn").addEventListener("click", async () => {
 (async () => {
   [db, userCap] = await Promise.all([claude.use("db"), claude.use("user")]);
   uid = userCap ? await userCap.id() : null;
+  await loadSemesterTable();
   if (db && userCap && await userCap.isOwner()) setupOwner();
 })();
 </script>
