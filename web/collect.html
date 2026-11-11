@@ -431,17 +431,34 @@ function semCount() {
 }
 
 // ---------- default semester table (catalog/semesters, written by the owner)
-let semesterMap = {}, timetableMap = {}, studentMap = {};  // official timetable + friends' majority (wins)
+let semesterMap = {}, timetableMap = {}, studentMap = {}, sectionMap = {};  // official timetable + friends' majority (wins)
+// The student's own section numbers (lecture/exercise/lab, e.g. 83563-01 + 83563-03) pin the semester:
+// intersect the semesters the timetable gives each section; fall back to the course-level table.
+function semesterFromSections(courseId) {
+  let set = null;
+  for (const c of parsed.courses) {
+    if (c.course_id !== courseId || !c.group) continue;
+    const s = sectionMap[c.code];
+    if (!s) continue;
+    const here = new Set(s.split("+"));
+    set = set ? new Set([...set].filter((x) => here.has(x))) : here;
+  }
+  return set && set.size === 1 ? [...set][0] : null;
+}
 function applySemesterDefaults() {
   if (!list) return;
-  for (const r of list) if (!r.semester && semesterMap[r.course_id]) { r.semester = semesterMap[r.course_id]; r.semester_source = "table"; }
+  for (const r of list) {
+    if (r.semester) continue;
+    const s = studentMap[r.course_id] || semesterFromSections(r.course_id) || timetableMap[r.course_id];
+    if (s) { r.semester = s; r.semester_source = "table"; }
+  }
 }
 async function loadSemesterTable() {
   if (!db) return;
   try {
     const snap = await db.doc("catalog/semesters").get();
     const d = snap.exists ? snap.data() : {};
-    timetableMap = d.timetable || {}; studentMap = d.map || {};
+    timetableMap = d.timetable || {}; studentMap = d.map || {}; sectionMap = d.sections || {};
     semesterMap = { ...timetableMap, ...studentMap };
     if (list) { applySemesterDefaults(); renderPreview(); }
   } catch { /* no table yet */ }
