@@ -36,6 +36,10 @@ transcript ─► preprocessing ─► prerequisite / eligibility filter ─► 
 - **Course catalog** — courses, credits and prerequisites from the Bar-Ilan Engineering yearbook (שנתון).
 - **Synthetic transcripts** — latent-skill generator calibrated to real grade statistics
   ([`src/synthetic/generator.py`](src/synthetic/generator.py)). Used for **training only**; the test set is 100% real.
+- **Prefix expansion** ([`src/data/expand_prefixes.py`](src/data/expand_prefixes.py)) — more training data from
+  each transcript: remove the last semester → sample "semesters 1..T-1 → forecast semester T (courses + grades)",
+  then remove the second-to-last → "1..T-2 → T-1", and so on. A student with T semesters gives T-1 samples
+  (≈7 per 8-semester student). Samples from the same student are correlated, so splits are **by student**, never by sample.
 
 ## Evaluation
 
